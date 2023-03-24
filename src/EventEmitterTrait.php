@@ -51,8 +51,7 @@ trait EventEmitterTrait
 	{
 		$this->depthFirstSearch($event, static function (&$node) use ($arguments) {
 			foreach ($node['listeners'] as $j => [$listener, $once]) {
-				$listener(...$arguments);
-				if ($once) {
+				if ($listener(...$arguments) === false || $once) {
 					unset($node['listeners'][$j]);
 				}
 			}
