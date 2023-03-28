@@ -45,11 +45,14 @@ trait EventEmitterTrait
 	 * @param string  $event     Event name.
 	 * @param mixed[] $arguments
 	 *
-	 * @return void
+	 * @return bool Whether the event was handled or not.
 	 */
-	public function emit(string $event, ...$arguments): void
+	public function emit(string $event, ...$arguments): bool
 	{
-		$this->depthFirstSearch($event, static function (&$node) use ($arguments) {
+		$handled = false;
+
+		$this->depthFirstSearch($event, static function (&$node) use ($arguments, &$handled) {
+			$handled = $handled || !empty($node['listeners']);
 			foreach ($node['listeners'] as $j => [$listener, $once]) {
 				if ($listener(...$arguments) === false || $once) {
 					unset($node['listeners'][$j]);
@@ -57,6 +60,8 @@ trait EventEmitterTrait
 			}
 			return true;
 		});
+
+		return $handled;
 	}
 
 	/**

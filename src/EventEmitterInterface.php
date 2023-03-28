@@ -31,9 +31,9 @@ interface EventEmitterInterface
 	 * @param string  $event     Event name.
 	 * @param mixed[] $arguments
 	 *
-	 * @return void
+	 * @return bool Whether the event was handled or not.
 	 */
-	public function emit(string $event, ...$arguments): void;
+	public function emit(string $event, ...$arguments): bool;
 
 	/**
 	 * Remove an event listener.
