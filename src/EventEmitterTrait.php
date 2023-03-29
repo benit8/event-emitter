@@ -10,6 +10,29 @@ trait EventEmitterTrait
 	/** @var Node */
 	private array $tree = ['listeners' => [], 'children' => []];
 
+	/** @var array{event: string, arguments: mixed[]}[] */
+	private array $eventQueue = [];
+
+	/** @var bool */
+	private bool $queueUnhandledEvents = false;
+
+	/**
+	 * When set, events not handled by any listener will get queued and
+	 * re-emitted to new listeners when added later.
+	 * When unset, previously queued events will be flushed and ignored.
+	 *
+	 * @param bool $value
+	 *
+	 * @return self
+	 */
+	public function queueUnhandledEvents(bool $value = true): self
+	{
+		if (false === ($this->queueUnhandledEvents = $value)) {
+			$this->eventQueue = [];
+		}
+		return $this;
+	}
+
 	/**
 	 * Listens for events.
 	 *
@@ -60,6 +83,10 @@ trait EventEmitterTrait
 			}
 			return true;
 		});
+
+		if (!$handled && $this->queueUnhandledEvents) {
+			$this->eventQueue[] = [$event, $arguments];
+		}
 
 		return $handled;
 	}
@@ -121,6 +148,18 @@ trait EventEmitterTrait
 		}
 
 		$node['listeners'][] = [$listener, $once];
+
+		// Run through the queued events, not requeuing them if still not handled.
+		$initialQueueUnhandledEvents = $this->queueUnhandledEvents;
+		$this->queueUnhandledEvents = false;
+
+		foreach ($this->eventQueue as $i => [$event, $arguments]) {
+			if ($this->emit($event, ...$arguments)) {
+				unset($this->eventQueue[$i]);
+			}
+		}
+
+		$this->queueUnhandledEvents = $initialQueueUnhandledEvents;
 	}
 
 	/**

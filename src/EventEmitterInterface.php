@@ -5,6 +5,17 @@ namespace Benit8\EventEmitter;
 interface EventEmitterInterface
 {
 	/**
+	 * When set, events not handled by any listener will get queued and
+	 * re-emitted to new listeners when added later.
+	 * When unset, previously queued events will be flushed and ignored.
+	 *
+	 * @param bool $value
+	 *
+	 * @return self
+	 */
+	public function queueUnhandledEvents(bool $value = true): self;
+
+	/**
 	 * Listens for events.
 	 *
 	 * @param string   $event    An event name globbing pattern.
